@@ -32,30 +32,27 @@ PERGUNTA DO USUÁRIO:
 RESPONDA A "PERGUNTA DO USUÁRIO"
 """
 
-def search_prompt(question=None):
+embeddings = GoogleGenerativeAIEmbeddings(model=os.getenv("GOOGLE_EMBEDDING_MODEL"))
+
+def get_relevant_documents(query: str, k: int = 10):
     db = PGVector(
         collection_name=os.getenv("PG_VECTOR_COLLECTION_NAME"),
         connection=os.getenv("DATABASE_URL"),
-        embeddings=GoogleGenerativeAIEmbeddings(
-            model=os.getenv("GOOGLE_EMBEDDING_MODEL")),
+        embeddings=embeddings,
         use_jsonb=True,
     )
 
-    results_with_scores = db.similarity_search_with_score(PROMPT_TEMPLATE, k=10)
+    results = db.similarity_search_with_score(query, k=k)
 
     relevant_docs = [doc for doc, score in results_with_scores]
 
-    context = "\n\n".join([doc.page_content for doc in relevant_docs])
+    return relevant_docs
 
+def search_prompt(question=None):
     llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash-lite", temperature=0)
 
     prompt = PromptTemplate.from_template(PROMPT_TEMPLATE)
 
     chain = prompt | llm | StrOutputParser()
 
-    response = chain.invoke({
-        "contexto": context,
-        "pergunta": question
-    })
-
-    return response
+    return chain
