@@ -1,4 +1,4 @@
-from search import search_prompt, relevant_docs
+from search import search_prompt, get_relevant_documents
 
 def main():
     chain = search_prompt()

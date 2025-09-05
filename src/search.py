@@ -1,7 +1,10 @@
 import os
 from dotenv import load_dotenv
+from langchain_core.output_parsers import StrOutputParser
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_postgres import PGVector
+from langchain.prompts import PromptTemplate
 
 load_dotenv()
 
@@ -44,7 +47,7 @@ def get_relevant_documents(query: str, k: int = 10):
 
     results = db.similarity_search_with_score(query, k=k)
 
-    relevant_docs = [doc for doc, score in results_with_scores]
+    relevant_docs = [doc for doc, score in results]
 
     return relevant_docs
 
